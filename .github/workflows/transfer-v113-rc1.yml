@@ -1,0 +1,24 @@
+name: Prepare v1.1.3 RC1 Drive Transfer
+on:
+  workflow_dispatch:
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Download and verify signed Windows release ZIP
+        run: |
+          curl --fail --location --retry 3 "https://github.com/burunchhehe/gwangju-listing-collector-releases/releases/download/v1.1.3-rc1/gwangju-listing-collector-1.1.3-windows.zip" --output /tmp/collector.zip
+          echo "d42f834e61d1b5489b949dc5a56e83bb61438cf94c626cc10097a00b3b916274  /tmp/collector.zip" | sha256sum --check
+          mkdir -p /tmp/gwangju-collector
+          unzip -q /tmp/collector.zip -d /tmp/gwangju-collector
+          test "$(find /tmp/gwangju-collector -type f -name '광주매물수집기.exe' | wc -l)" -eq 1
+      - name: Transfer installable package as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gwangju-listing-collector-1.1.3-rc1-drive-install
+          path: /tmp/gwangju-collector/
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
